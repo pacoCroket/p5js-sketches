@@ -25,7 +25,7 @@ var asciiartOn = true;
 function setup() {
     createCanvas(windowWidth, windowHeight);
     video = createCapture(VIDEO);
-    video.size(1280/2, 720/2);
+    video.size(640, 360);
     video.elt.setAttribute('playsinline', '');
     video.hide();
     
@@ -33,7 +33,7 @@ function setup() {
     myAsciiArt = new AsciiArt(this);
     textAlign(CENTER, CENTER); textFont('monospace', 8); textStyle(NORMAL);
     noStroke(); fill(255);
-    gfx = createGraphics(width, height);
+    gfx = createGraphics(asciiart_width, asciiart_height);
     gfx.pixelDensity(1);
     maxFontSize = width/asciiart_width*1.5;
     xRescale = width/video.width;
@@ -111,6 +111,7 @@ function draw() {
     }
 
     copy(video.width, 0, video.width, video.height, width, 0, width, height);
+    ellipse(width/2, height/2, 50, 50);
 
 
 }
