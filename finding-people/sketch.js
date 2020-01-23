@@ -1,11 +1,7 @@
 let cnv;
 let video;
 let poseNet;
-let faces = [];
 let poses = [];
-let pose;
-let leftEye;
-let rightEye;
 
 var myAsciiArt;
 var asciiart_width = 80; var asciiart_height = 60;
@@ -47,30 +43,13 @@ function setup() {
     mic.start();
     
     // ML5
-    poseNet = ml5.poseNet(video, modelReady);
+    poseNet = ml5.poseNet(video, 'multiple', modelReady);
     poseNet.on('pose', gotPoses);
     strokeCap(ROUND);
 }
 
-function gotPoses(_poses) {
-    poses = _poses;
-    if (_poses.length > 0) {
-        for (var i = 0; i < _poses.length; i++) {  
-            let nX = _poses[i].pose.keypoints[0].position.x;
-            let nY = _poses[i].pose.keypoints[0].position.y;
-            let elX = _poses[i].pose.keypoints[1].position.x;
-            let elY = _poses[i].pose.keypoints[1].position.y;
-            let erX = _poses[i].pose.keypoints[2].position.x;
-            let erY = _poses[i].pose.keypoints[2].position.y;
-
-            if (faces[i] != undefined && faces[i].length == 6) {
-                faces[i] = [lerp(faces[i][0], nX, 0.5), lerp(faces[i][1], nY, 0.5), lerp(faces[i][2], elX, 0.5), lerp(faces[i][3], elY, 0.5),
-                lerp(faces[i][4], erX, 0.5), lerp(faces[i][5], erY, 0.5)];
-            } else {
-                faces[i] = [nX, nY, elX, elY, erX, erY];
-            }
-        }
-    }
+function gotPoses(results) {
+    poses = results;
 }
 
 function modelReady() {
@@ -101,72 +80,71 @@ function draw() {
         // let posterize = map(mouseY, 50, height, 2, 60);
         // posterize = constrain(posterize, 2, 60);
         // gfx.filter(POSTERIZE, posterize);
-        gfx.filter(POSTERIZE, 3);
+        gfx.filter(POSTERIZE, 4);
         gfx.filter(INVERT);
         // textFont('monospace', map(mic.getLevel(), 0, 1, 4, 20));
         
         // textFont('monospace', map(mouseX, 0, width, 2, maxFontSize));
-        textFont('monospace', 10);
+        textFont('monospace', 11);
         ascii_arr = myAsciiArt.convert(gfx);
         myAsciiArt.typeArray2d(ascii_arr, this);
     }
 
     // circle over head reacting to mic
-    stroke(255);
-    strokeWeight(6);
+
 
     // skeleton and eyes
-    if (poses != undefined) {
-        for (var i = 0; i < poses.length; i++) {
-            let pose = poses[i];
-            
-            // for (var i = 0; i < pose.pose.keypoints.length; i++) {
-            //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
-            // }
-            for (var i = 0; i < pose.skeleton.length; i++) {
-                line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
+    if (poses != undefined && poses.length > 0) {
+        // for (var i = 0; i < poses.length; i++) { 
+            let pose = poses[0];  
+
+            if (pose != undefined) {         
+                // for (var i = 0; i < pose.pose.keypoints.length; i++) {
+                //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
+                // }
+                stroke(255);
+                strokeWeight(6);
+                for (var i = 0; i < pose.skeleton.length; i++) {
+                    line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
+                }
+
+                // face
+                let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
+                let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
+                let er = createVector(pose.pose.keypoints[2].position.x, pose.pose.keypoints[2].position.y);
+                
+                let d = p5.Vector.dist(nose, el);
+
+                // circle ovr head
+                fill(0, 130);
+                push();
+                translate(nose.x*xRescale, nose.y*yRescale-d);
+                let btwEyes = p5.Vector.sub(el, er);
+                rotate(btwEyes.heading());
+                ellipse(0, 0, d*8*map(mic.getLevel(), 0, 1, 1, 0.6), d*10*map(mic.getLevel(), 0, 1, 1, 1.5));
+                pop();
+
+                // black crosses on the eyes
+                stroke(0);
+                strokeWeight(d*0.6);
+                // left eye
+                drawCross(el.x*xRescale, el.y*yRescale, d*0.7)
+                // right eye
+                drawCross(er.x*xRescale, er.y*yRescale, d*0.7)
+
             }
         }
+    // }
+}
 
-        for (var i = 0; i < faces.length; i++) {
-            let noseX = faces[i][0];
-            let noseY = faces[i][1];
-            let elX = faces[i][2];
-            let elY = faces[i][3];
-            let erX = faces[i][4];
-            let erY = faces[i][5];
-            let d = dist(noseX, noseY, elX, elY);
-
-            // circle ovr head
-            fill(0, 130);
-            push();
-            // let btwEyes = p5.Vector.sub()
-            ellipse(noseX*xRescale, noseY*yRescale-d, d*8*map(mic.getLevel(), 0, 1, 1, 0.6), d*10*map(mic.getLevel(), 0, 1, 1, 1.5));
-            push();
-
-            // black crosses on the eyes
-            stroke(0);
-            strokeWeight(d*0.6);
-            // left eye
-            push();
-            translate(elX*xRescale, elY*yRescale);
-            rotate(PI/4);
-            line(- d*0.7, 0, d*0.7, 0);
-            rotate(PI/2);
-            line(- d*0.7, 0, d*0.7, 0);
-            pop();
-            // right eye
-            push();
-            translate(erX*xRescale, erY*yRescale);
-            rotate(PI/4);
-            line(- d*0.7, 0, d*0.7, 0);
-            rotate(PI/2);
-            line(- d*0.7, 0, d*0.7, 0);
-            pop();
-        }
-    }
-
-
+function drawCross(x, y, l) {
+    push();
+    translate(x, y);
+    rotate(PI/4);
+    line(-l, 0, l, 0);
+    rotate(PI/2);
+    line(-l, 0, l, 0);
+    pop();
 }
 
 function mouseReleased() {    
