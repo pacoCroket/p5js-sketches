@@ -2,6 +2,9 @@ let cnv;
 let video;
 let poseNet;
 let poses = [];
+let prevFace;
+let mirror = true;
+let lerpAmount = 0.6;
 
 var myAsciiArt;
 var asciiart_width = 80; var asciiart_height = 60;
@@ -31,7 +34,9 @@ function setup() {
     
     // ASCII art
     myAsciiArt = new AsciiArt(this);
-    textAlign(CENTER, CENTER); textFont('monospace', 8); textStyle(NORMAL);
+    textAlign(CENTER, CENTER);
+    textFont('monospace', 8);
+    textStyle(NORMAL);
     gfx = createGraphics(asciiart_width, asciiart_height);
     gfx.pixelDensity(1);
     maxFontSize = width/asciiart_width*1.5;
@@ -43,7 +48,7 @@ function setup() {
     mic.start();
     
     // ML5
-    poseNet = ml5.poseNet(video, 'multiple', modelReady);
+    poseNet = ml5.poseNet(video, 'single', modelReady);
     poseNet.on('pose', gotPoses);
     strokeCap(ROUND);
 }
@@ -59,15 +64,16 @@ function modelReady() {
 function draw() {
     background(0);
 
-    translate(width, 0);
-    scale(-1.0, 1.0);    // flip x-axis backwards
+    if (mirror) {
+        translate(width, 0);
+        scale(-1.0, 1.0);    // flip x-axis backwards
+    }
 
     if (showOryginalImageFlag) image(video, 0, 0, width, height);
-
-    noStroke();
-    fill(255);   
     
-    if (asciiartOn) {
+    if (asciiartOn) {   
+        noStroke();
+        fill(255);  
         // draw some ASCII art
         gfx.background(0);
         gfx.image(video, 0, 0, gfx.width, gfx.height);
@@ -81,7 +87,7 @@ function draw() {
         // posterize = constrain(posterize, 2, 60);
         // gfx.filter(POSTERIZE, posterize);
         gfx.filter(POSTERIZE, 4);
-        gfx.filter(INVERT);
+        // gfx.filter(INVERT);
         // textFont('monospace', map(mic.getLevel(), 0, 1, 4, 20));
         
         // textFont('monospace', map(mouseX, 0, width, 2, maxFontSize));
@@ -108,41 +114,75 @@ function draw() {
                     line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
                 }
 
-                // face
+                // face 
                 let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
                 let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
                 let er = createVector(pose.pose.keypoints[2].position.x, pose.pose.keypoints[2].position.y);
+
+                if (prevFace != undefined) {
+                    nose = p5.Vector.lerp(nose, prevFace[0], lerpAmount);
+                    el = p5.Vector.lerp(el, prevFace[1], lerpAmount);
+                    er = p5.Vector.lerp(er, prevFace[2], lerpAmount);
+                } 
+
+                prevFace = [nose, el, er];
                 
+                let btwEyes = p5.Vector.sub(el, er);
                 let d = p5.Vector.dist(nose, el);
 
                 // circle ovr head
-                fill(0, 130);
-                push();
-                translate(nose.x*xRescale, nose.y*yRescale-d);
-                let btwEyes = p5.Vector.sub(el, er);
-                rotate(btwEyes.heading());
-                ellipse(0, 0, d*8*map(mic.getLevel(), 0, 1, 1, 0.6), d*10*map(mic.getLevel(), 0, 1, 1, 1.5));
-                pop();
+                if (d*10 < 600) {
+                    fill(0, 130);
+                    push();
+                    translate(nose.x*xRescale, nose.y*yRescale-d);
+                    rotate(btwEyes.heading());
+                    ellipse(0, 0, d*8*map(mic.getLevel(), 0, 1, 1, 0.6), d*10*map(mic.getLevel(), 0, 1, 1, 1.5));
+                    pop();
+                }
 
                 // black crosses on the eyes
                 stroke(0);
                 strokeWeight(d*0.6);
                 // left eye
-                drawCross(el.x*xRescale, el.y*yRescale, d*0.7)
+                drawCross(el.x*xRescale, el.y*yRescale, btwEyes)
                 // right eye
-                drawCross(er.x*xRescale, er.y*yRescale, d*0.7)
+                drawCross(er.x*xRescale, er.y*yRescale, btwEyes)
 
             }
         }
     // }
+
+    // Paco Croket tag
+    push();
+    noStroke();
+    fill(0);  
+    translate(width/2, height);
+    rect(-100, -40, 200, 40)
+    fill(255);  
+    textFont('monospace', 25);
+    translate(0, -20);
+    text('tekorCocaP@', 0, 0);
+    pop();
+    push();
+    noStroke();
+    fill(0);  
+    translate(width/2, 0);
+    rect(-100, 0, 200, 40)
+    fill(255);  
+    textFont('monospace', 25);
+    translate(0, 20);
+    text('@pacoCroket', 0, 0);
+    pop();
 }
 
-function drawCross(x, y, l) {
+function drawCross(x, y, btwEyes) {
+    let l = btwEyes.mag()/2;
+    let eyeAngle = btwEyes.heading();
     push();
     translate(x, y);
-    rotate(PI/4);
+    rotate(-PI/4 + eyeAngle);
     line(-l, 0, l, 0);
-    rotate(PI/2);
+    rotate(PI/2 + eyeAngle);
     line(-l, 0, l, 0);
     pop();
 }
