@@ -14,4 +14,4 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/pi/.config/chromi
 sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/pi/.config/chromium/Default/Preferences
  
 # Run Chromium and open tabs
-/usr/bin/chromium-browser --window-size=480,320 --kiosk --window-position=0,0 index.html &
+/usr/bin/chromium-browser  --noerrdialogs --kiosk --start-fullscreen index.html &
