@@ -3,6 +3,7 @@ let video;
 let poseNet;
 let poses = [];
 let prevFace;
+let prevPose;
 
 var myAsciiArt;
 var asciiart_width = 80; var asciiart_height = 50;
@@ -20,8 +21,8 @@ var asciiartOn = true;
 var showOryginalImageFlag = true;
 let mirror = true;
 let invertVideo = false;
-let invertAsciiart = true;
-let lerpAmount = 0.4;
+let invertAsciiart = false;
+let lerpAmount = 0.3;
 
 function setup() {
     cnv = createCanvas(1280, 960);
@@ -114,6 +115,15 @@ function drawPoses() {
         //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
         // }
 
+        if (prevPose != undefined && prevPose.skeleton.length == pose.skeleton.length) {
+            for (var i = 0; i < prevPose.skeleton.length; i++) {
+                pose.skeleton[i][0].position.x = lerp(pose.skeleton[i][0].position.x, prevPose.skeleton[i][0].position.x, lerpAmount);
+                pose.skeleton[i][0].position.y = lerp(pose.skeleton[i][0].position.y, prevPose.skeleton[i][0].position.y, lerpAmount);
+                pose.skeleton[i][1].position.x = lerp(pose.skeleton[i][1].position.x, prevPose.skeleton[i][1].position.x, lerpAmount);
+                pose.skeleton[i][1].position.y = lerp(pose.skeleton[i][1].position.y, prevPose.skeleton[i][1].position.y, lerpAmount);
+            }
+        }
+
         // face 
         let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
         let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
@@ -154,6 +164,7 @@ function drawPoses() {
         // right eye
         drawCross(er.x*xRescale, er.y*yRescale, btwEyes)
 
+        prevPose = pose;
     }
 }
 
