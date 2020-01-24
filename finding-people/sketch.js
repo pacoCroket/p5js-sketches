@@ -18,8 +18,9 @@ let mic;
 
 var asciiartOn = true;
 var showOryginalImageFlag = true;
-let mirror = false;
-let invert = false;
+let mirror = true;
+let invertVideo = false;
+let invertAsciiart = true;
 let lerpAmount = 0.4;
 
 function setup() {
@@ -39,7 +40,7 @@ function setup() {
     textStyle(NORMAL);
     gfx = createGraphics(asciiart_width, asciiart_height);
     gfx.pixelDensity(1);
-    maxFontSize = (width/asciiart_width + height/asciiart_height)/2;
+    maxFontSize = sqrt(pow(width/asciiart_width, 2) + pow(height/asciiart_height, 2))*0.75;
     xRescale = width/video.width;
     yRescale = height/video.height;
 
@@ -73,7 +74,7 @@ function draw() {
 
     if (showOryginalImageFlag) {
         image(video, 0, 0, width, height);
-        if (invert) filter(INVERT);
+        if (invertVideo) filter(INVERT);
     }
     
     if (asciiartOn) drawAscii();
@@ -112,11 +113,6 @@ function drawPoses() {
         // for (var i = 0; i < pose.pose.keypoints.length; i++) {
         //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
         // }
-        stroke(255);
-        strokeWeight(10);
-        for (var i = 0; i < pose.skeleton.length; i++) {
-            line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
-        }
 
         // face 
         let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
@@ -133,6 +129,12 @@ function drawPoses() {
         
         let btwEyes = p5.Vector.sub(el, er);
         let d = p5.Vector.dist(nose, el);
+
+        stroke(255);
+        strokeWeight(d/2);
+        for (var i = 0; i < pose.skeleton.length; i++) {
+            line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
+        }
 
         // circle ovr head
         if (d*10 < 600) {
@@ -157,7 +159,7 @@ function drawPoses() {
 
 function drawAscii() {
     noStroke();
-    fill(invert?0:255);  
+    fill(invertVideo?0:255);  
     // draw some ASCII art
     gfx.background(0);
     gfx.image(video, 0, 0, gfx.width, gfx.height);
@@ -171,7 +173,7 @@ function drawAscii() {
     // posterize = constrain(posterize, 2, 60);
     // gfx.filter(POSTERIZE, posterize);
     gfx.filter(POSTERIZE, 10);
-    // gfx.filter(INVERT);
+    if (invertAsciiart) gfx.filter(INVERT);
     // textFont('monospace', map(mic.getLevel(), 0, 1, 4, 20));
     
     // textFont('monospace', map(mouseX, 0, width, 2, maxFontSize));
@@ -193,5 +195,5 @@ function drawCross(x, y, btwEyes) {
 }
 
 function mouseReleased() {    
-    showOryginalImageFlag = !showOryginalImageFlag;
+    invertVideo = !invertVideo;
 }
