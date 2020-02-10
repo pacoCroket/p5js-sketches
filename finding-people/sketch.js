@@ -6,7 +6,8 @@ let prevFace;
 let prevPose;
 
 var myAsciiArt;
-var asciiart_width = 80; var asciiart_height = 50;
+var asciiart_width = 80;
+var asciiart_height = 50;
 /*
 Buffer for processed graphics, simplifying some operations. This will be an
 object derived from the p5.Graphics class
@@ -17,6 +18,7 @@ let xRescale;
 let yreScale;
 let mic;
 
+var isMic = false;
 var asciiartOn = true;
 var showOryginalImageFlag = true;
 let mirror = true;
@@ -32,8 +34,8 @@ function setup() {
     video = createCapture(VIDEO);
     video.hide();
     video.size(640, 480);
-    video.elt.setAttribute('playsinline', '');
-    
+    video.elt.setAttribute("playsinline", "");
+
     // ASCII art
     myAsciiArt = new AsciiArt(this);
     textAlign(CENTER, CENTER);
@@ -41,17 +43,19 @@ function setup() {
     textStyle(NORMAL);
     gfx = createGraphics(asciiart_width, asciiart_height);
     gfx.pixelDensity(1);
-    maxFontSize = sqrt(pow(width/asciiart_width, 2) + pow(height/asciiart_height, 2))*0.75;
-    xRescale = width/video.width;
-    yRescale = height/video.height;
+    maxFontSize = sqrt(pow(width / asciiart_width, 2) + pow(height / asciiart_height, 2)) * 0.75;
+    xRescale = width / video.width;
+    yRescale = height / video.height;
 
     // Create an Audio input
-    mic = new p5.AudioIn();
-    mic.start();
-    
+    if (isMic) {
+        mic = new p5.AudioIn();
+        mic.start();
+    }
+
     // ML5
-    poseNet = ml5.poseNet(video, 'single', modelReady);
-    poseNet.on('pose', gotPoses);
+    poseNet = ml5.poseNet(video, "single", modelReady);
+    poseNet.on("pose", gotPoses);
     strokeCap(ROUND);
     // blendMode(DIFFERENCE); // trippy
     blendMode(HARD_LIGHT); // nice darkened colors
@@ -62,7 +66,7 @@ function gotPoses(results) {
 }
 
 function modelReady() {
-    console.log('model ready');
+    console.log("model ready");
 }
 
 function draw() {
@@ -70,24 +74,24 @@ function draw() {
 
     if (mirror) {
         translate(width, 0);
-        scale(-1.0, 1.0);    // flip x-axis backwards
+        scale(-1.0, 1.0); // flip x-axis backwards
     }
 
     if (showOryginalImageFlag) {
         image(video, 0, 0, width, height);
         if (invertVideo) filter(INVERT);
     }
-    
+
     if (asciiartOn) drawAscii();
 
     if (poses != undefined && poses.length > 0) drawPoses();
 }
 
 function drawPoses() {
- // for (var i = 0; i < poses.length; i++) { 
-    let pose = poses[0];  
+    // for (var i = 0; i < poses.length; i++) {
+    let pose = poses[0];
 
-    if (pose != undefined) {         
+    if (pose != undefined) {
         // for (var i = 0; i < pose.pose.keypoints.length; i++) {
         //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
         // }
@@ -101,7 +105,7 @@ function drawPoses() {
             }
         }
 
-        // face 
+        // face
         let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
         let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
         let er = createVector(pose.pose.keypoints[2].position.x, pose.pose.keypoints[2].position.y);
@@ -110,36 +114,45 @@ function drawPoses() {
             nose = p5.Vector.lerp(nose, prevFace[0], lerpAmount);
             el = p5.Vector.lerp(el, prevFace[1], lerpAmount);
             er = p5.Vector.lerp(er, prevFace[2], lerpAmount);
-        } 
+        }
 
         prevFace = [nose, el, er];
-        
+
         let btwEyes = p5.Vector.sub(el, er);
         let d = p5.Vector.dist(nose, el);
 
         stroke(255);
-        strokeWeight(d/2);
+        strokeWeight(d / 2);
         for (var i = 0; i < pose.skeleton.length; i++) {
-            line(pose.skeleton[i][0].position.x*xRescale, pose.skeleton[i][0].position.y*yRescale, pose.skeleton[i][1].position.x*xRescale, pose.skeleton[i][1].position.y*yRescale);
+            line(
+                pose.skeleton[i][0].position.x * xRescale,
+                pose.skeleton[i][0].position.y * yRescale,
+                pose.skeleton[i][1].position.x * xRescale,
+                pose.skeleton[i][1].position.y * yRescale
+            );
         }
 
         // circle ovr head
-        if (d*10 < 600) {
+        if (d * 10 < 600) {
             fill(0, 80);
             push();
-            translate(nose.x*xRescale, nose.y*yRescale-d);
+            translate(nose.x * xRescale, nose.y * yRescale - d);
             rotate(btwEyes.heading());
-            ellipse(0, 0, d*8*map(mic.getLevel(), 0, 1, 1, 0.6), d*10*map(mic.getLevel(), 0, 1, 1, 1.5));
+            if (isMic) {
+                ellipse(0, 0, d * 8 * map(mic.getLevel(), 0, 1, 1, 0.6), d * 10 * map(mic.getLevel(), 0, 1, 1, 1.5));
+            } else {
+                ellipse(0, 0, d*8, d*10);
+            }
             pop();
         }
 
         // black crosses on the eyes
         stroke(0);
-        strokeWeight(d*0.6);
+        strokeWeight(d * 0.6);
         // left eye
-        drawCross(el.x*xRescale, el.y*yRescale, btwEyes)
+        drawCross(el.x * xRescale, el.y * yRescale, btwEyes);
         // right eye
-        drawCross(er.x*xRescale, er.y*yRescale, btwEyes)
+        drawCross(er.x * xRescale, er.y * yRescale, btwEyes);
 
         prevPose = pose;
     }
@@ -147,7 +160,7 @@ function drawPoses() {
 
 function drawAscii() {
     noStroke();
-    fill(invertVideo?0:255);  
+    fill(invertVideo ? 0 : 255);
     // draw some ASCII art
     gfx.background(0);
     gfx.image(video, 0, 0, gfx.width, gfx.height);
@@ -163,25 +176,25 @@ function drawAscii() {
     gfx.filter(POSTERIZE, 10);
     if (invertAsciiart) gfx.filter(INVERT);
     // textFont('monospace', map(mic.getLevel(), 0, 1, 4, 20));
-    
+
     // textFont('monospace', map(mouseX, 0, width, 2, maxFontSize));
-    textFont('monospace', maxFontSize);
+    textFont("monospace", maxFontSize);
     ascii_arr = myAsciiArt.convert(gfx);
     myAsciiArt.typeArray2d(ascii_arr, this);
 }
 
 function drawCross(x, y, btwEyes) {
-    let l = btwEyes.mag()*0.8;
+    let l = btwEyes.mag() * 0.8;
     let eyeAngle = btwEyes.heading();
     push();
     translate(x, y);
-    rotate(-PI/4 + eyeAngle);
+    rotate(-PI / 4 + eyeAngle);
     line(-l, 0, l, 0);
-    rotate(PI/2 + eyeAngle);
+    rotate(PI / 2 + eyeAngle);
     line(-l, 0, l, 0);
     pop();
 }
 
-function mouseReleased() {    
+function mouseReleased() {
     invertVideo = !invertVideo;
 }
