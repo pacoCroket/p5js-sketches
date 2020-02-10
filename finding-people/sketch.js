@@ -27,12 +27,12 @@ let lerpAmount = 0.3;
 function setup() {
     cnv = createCanvas(1280, 960);
     cnv.parent("#sketch");
-    cnv.class("center");
+    // cnv.class("center");
 
     video = createCapture(VIDEO);
+    video.hide();
     video.size(640, 480);
     video.elt.setAttribute('playsinline', '');
-    video.hide();
     
     // ASCII art
     myAsciiArt = new AsciiArt(this);
@@ -81,29 +81,6 @@ function draw() {
     if (asciiartOn) drawAscii();
 
     if (poses != undefined && poses.length > 0) drawPoses();
-
-
-    // Paco Croket tag
-    push();
-    noStroke();
-    fill(0);  
-    translate(width/2, height);
-    rect(-100, -40, 200, 40)
-    fill(255);  
-    textFont('monospace', 25);
-    translate(0, -20);
-    text('@pacoCroket', 0, 0);
-    pop();
-    push();
-    noStroke();
-    fill(0);  
-    translate(width/2, 0);
-    rect(-100, 0, 200, 40)
-    fill(255);  
-    textFont('monospace', 25);
-    translate(0, 20);
-    text('@pacoCroket', 0, 0);
-    pop();
 }
 
 function drawPoses() {

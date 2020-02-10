@@ -1,12 +1,32 @@
 body {
-    overflow:hidden;
-    padding: 0;
-    margin: 0;
-    background: black;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  background: black;
 }
 
 .center {
-    display: block;
-    margin: auto;
-    padding: auto;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h3.center-title {
+  color: white;
+  background: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  padding: 0 1rem 0.5rem;
+  font: normal 500 3rem/3rem Tahoma;
+  z-index: 999;
+}
+
+.sketch {
+  position: fixed;
+  border: none;
+  z-index: -3 !important;
+  width: 101%;
+  height: 100%;
+}
