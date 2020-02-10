@@ -15,7 +15,7 @@ object derived from the p5.Graphics class
 var gfx;
 let maxFontSize;
 let xRescale;
-let yreScale;
+let yRescale;
 let mic;
 
 var isMic = false;
@@ -35,6 +35,7 @@ function setup() {
     video.hide();
     video.size(640, 480);
     video.elt.setAttribute("playsinline", "");
+    setRescaling()
 
     // ASCII art
     myAsciiArt = new AsciiArt(this);
@@ -44,9 +45,6 @@ function setup() {
     gfx = createGraphics(asciiart_width, asciiart_height);
     gfx.pixelDensity(1);
     maxFontSize = sqrt(pow(width / asciiart_width, 2) + pow(height / asciiart_height, 2)) * 0.75;
-    xRescale = width / video.width;
-    yRescale = height / video.height;
-
     // Create an Audio input
     if (isMic) {
         mic = new p5.AudioIn();
@@ -61,6 +59,11 @@ function setup() {
     blendMode(HARD_LIGHT); // nice darkened colors
 }
 
+function setRescaling() {
+    xRescale = width / video.width;
+    yRescale = height / video.height;
+}
+
 function gotPoses(results) {
     poses = results;
 }
@@ -71,6 +74,9 @@ function modelReady() {
 
 function draw() {
     background(0);
+    if (xRescale > 999999 || yRescale > 999999) {
+        setRescaling();
+    }
 
     if (mirror) {
         translate(width, 0);
@@ -178,7 +184,7 @@ function drawAscii() {
     // textFont('monospace', map(mic.getLevel(), 0, 1, 4, 20));
 
     // textFont('monospace', map(mouseX, 0, width, 2, maxFontSize));
-    textFont("monospace", maxFontSize);
+    textFont("Courier", maxFontSize);
     ascii_arr = myAsciiArt.convert(gfx);
     myAsciiArt.typeArray2d(ascii_arr, this);
 }
