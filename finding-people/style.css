@@ -30,3 +30,21 @@ h3.center-title {
   width: 101%;
   height: 100%;
 }
+
+.configArea {
+    width: 10%;
+    transform: translateY(50%);
+    height: auto;
+    padding: auto;
+}
+
+button {
+    margin: .2rem .8rem;
+    padding: .4rem .8rem;
+    border-radius: 10px;    
+    background-clip: padding-box;
+    color: black;    
+    font: bold 500 16px/20px Tahoma;
+    position: relative;
+    border: 3px solid transparent white;
+}

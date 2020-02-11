@@ -3,25 +3,30 @@ let video;
 let poseNet;
 let poses = [];
 let prevPoses = [];
-// let prevFace;
-// let prevPose;
 
-var myAsciiArt;
-var asciiart_width = 80;
-var asciiart_height = 50;
+let myAsciiArt;
+let asciiart_width = 80;
+let asciiart_height = 50;
 /*
 Buffer for processed graphics, simplifying some operations. This will be an
 object derived from the p5.Graphics class
 */
-var gfx;
+let gfx;
 let maxFontSize;
 let xRescale;
 let yRescale;
 let mic;
 
-var isMic = true;
-var asciiartOn = true;
-var showOryginalImageFlag = true;
+let isMic = true;
+let asciiartOn = true;
+let showSkeleton = true;
+let asciiButton;
+let showOryginalImageFlag = true;
+let showVideoButton;
+let skeletonButton;
+let invertButton;
+let micButton;
+let mirrorButton;
 let mirror = true;
 let invertVideo = false;
 let invertAsciiart = false;
@@ -75,23 +80,23 @@ function setup() {
     fft.setInput(mic);
 
     wormCounter = select('#wormCounter');
-}
+    asciiButton = select('#AsciiToggle');
+    showVideoButton = select('#VideoToggle');
+    invertButton = select('#InvertToggle');
+    skeletonButton = select('#SkeletonToggle');
+    micButton = select('#MicToggle');
+    mirrorButton = select('#MirrorToggle');
 
-function setRescaling() {
-    xRescale = width / video.width;
-    yRescale = height / video.height;
-}
-
-function gotPoses(results) {
-    poses = results;
-}
-
-function modelReady() {
-    console.log("model ready");
+    asciiButton.mousePressed(toggleAscii);
+    showVideoButton.mousePressed(toggleVideo);
+    invertButton.mousePressed(invertToggle);
+    skeletonButton.mousePressed(skeletonToggle);
+    micButton.mousePressed(micToggle);
+    mirrorButton.mousePressed(mirrorToggle);
 }
 
 function draw() {
-    background(0);
+    background(invertVideo?220:0);
     if (xRescale > 999999 || yRescale > 999999) {
         setRescaling();
     }
@@ -112,7 +117,7 @@ function draw() {
     if (asciiartOn) drawAscii();
 
     if (poses != undefined && poses.length > 0) {
-        drawPoses();
+        if (showSkeleton) drawPoses();
         handleWorms();
     } else {
         showWorms();
@@ -270,5 +275,43 @@ function drawCross(x, y, btwEyes) {
 }
 
 function mouseReleased() {
+    //invertVideo = !invertVideo;
+}
+
+
+function micToggle() {
+    isMic = !isMic;
+}
+
+function mirrorToggle() {
+    mirror = !mirror;
+}
+
+function skeletonToggle() {
+    showSkeleton = !showSkeleton;
+}
+
+function invertToggle() {
     invertVideo = !invertVideo;
+}
+
+function toggleAscii() {
+    asciiartOn = !asciiartOn;
+}
+
+function toggleVideo() {
+    showOryginalImageFlag = !showOryginalImageFlag;
+}
+
+function setRescaling() {
+    xRescale = width / video.width;
+    yRescale = height / video.height;
+}
+
+function gotPoses(results) {
+    poses = results;
+}
+
+function modelReady() {
+    console.log("model ready");
 }
