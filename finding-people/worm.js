@@ -1,7 +1,7 @@
 class Worm {
     constructor(_pos) {
-        this.count = floor(random(4, 10));
-        this.len0 = random(30, 60);
+        this.count = floor(random(4, 8));
+        this.len0 = random(30, 80);
         this.segments = [];
         this.pos = _pos;
         this.head = new Segment(this.pos, this, this.len0);

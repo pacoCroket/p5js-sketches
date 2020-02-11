@@ -36,6 +36,7 @@ let worms = [];
 let maxWorms = 30;
 let spawnRate = 4; // seconds
 let newWorm = false;
+let wormCounter;
 
 function setup() {
     cnv = createCanvas(1280, 960);
@@ -72,6 +73,8 @@ function setup() {
     // FTT
     fft = new p5.FFT(0.8, 512);
     fft.setInput(mic);
+
+    wormCounter = select('#wormCounter');
 }
 
 function setRescaling() {
@@ -119,7 +122,8 @@ function draw() {
 function handleWorms() {
     // spawn new if applicable
     if (second() % spawnRate == 0 && worms.length < maxWorms && !newWorm) {
-        worms.push(new Worm(createVector(random(width), -50)));
+        var spawnPos = createVector(round(random(0, 1))?width+50:-50, round(random(0, 1))?height+50:-50);
+        worms.push(new Worm(spawnPos));
         newWorm = true;
     } else if (second() % spawnRate != 0) {
         newWorm = false;
@@ -147,6 +151,8 @@ function handleWorms() {
         worms[i].update();
         worms[i].show();
     }
+
+    // wormCounter = `Worms: ${worms.length}`; // TODO update DOM
 }
 
 function showWorms() {
