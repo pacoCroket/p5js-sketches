@@ -2,8 +2,9 @@ let cnv;
 let video;
 let poseNet;
 let poses = [];
-let prevFace;
-let prevPose;
+let prevPoses = [];
+// let prevFace;
+// let prevPose;
 
 var myAsciiArt;
 var asciiart_width = 80;
@@ -35,7 +36,7 @@ function setup() {
     video.hide();
     video.size(640, 480);
     video.elt.setAttribute("playsinline", "");
-    setRescaling()
+    setRescaling();
 
     // ASCII art
     myAsciiArt = new AsciiArt(this);
@@ -52,7 +53,7 @@ function setup() {
     }
 
     // ML5
-    poseNet = ml5.poseNet(video, "single", modelReady);
+    poseNet = ml5.poseNet(video, "multiple", modelReady);
     poseNet.on("pose", gotPoses);
     strokeCap(ROUND);
     // blendMode(DIFFERENCE); // trippy
@@ -66,6 +67,7 @@ function setRescaling() {
 
 function gotPoses(results) {
     poses = results;
+    console.log(poses);
 }
 
 function modelReady() {
@@ -94,14 +96,30 @@ function draw() {
 }
 
 function drawPoses() {
-    // for (var i = 0; i < poses.length; i++) {
-    let pose = poses[0];
+    for (var j = 0; j < poses.length; j++) {
+        let pose = poses[j];
+        let prevPose = prevPoses[j];
 
-    if (pose != undefined) {
-        // for (var i = 0; i < pose.pose.keypoints.length; i++) {
-        //     ellipse(pose.pose.keypoints[i].position.x*xRescale, pose.pose.keypoints[i].position.y*yRescale, 20);
-        // }
+        // face
+        let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
+        let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
+        let er = createVector(pose.pose.keypoints[2].position.x, pose.pose.keypoints[2].position.y);
 
+        if (prevPose != undefined) {
+            // get position of previous nose and eyes
+            let prevNose = createVector(prevPose.pose.keypoints[0].position.x, prevPose.pose.keypoints[0].position.y);
+            let prevEl = createVector(prevPose.pose.keypoints[1].position.x, prevPose.pose.keypoints[1].position.y);
+            let prevEr = createVector(prevPose.pose.keypoints[2].position.x, prevPose.pose.keypoints[2].position.y);
+            // lerp between old and new position
+            nose = p5.Vector.lerp(nose, prevNose, lerpAmount);
+            el = p5.Vector.lerp(el, prevEl, lerpAmount);
+            er = p5.Vector.lerp(er, prevEr, lerpAmount);
+        }
+
+        let btwEyes = p5.Vector.sub(el, er);
+        let d = p5.Vector.dist(nose, el);
+
+        // lerp from previous skeleton
         if (prevPose != undefined && prevPose.skeleton.length == pose.skeleton.length) {
             for (var i = 0; i < prevPose.skeleton.length; i++) {
                 pose.skeleton[i][0].position.x = lerp(pose.skeleton[i][0].position.x, prevPose.skeleton[i][0].position.x, lerpAmount);
@@ -110,22 +128,6 @@ function drawPoses() {
                 pose.skeleton[i][1].position.y = lerp(pose.skeleton[i][1].position.y, prevPose.skeleton[i][1].position.y, lerpAmount);
             }
         }
-
-        // face
-        let nose = createVector(pose.pose.keypoints[0].position.x, pose.pose.keypoints[0].position.y);
-        let el = createVector(pose.pose.keypoints[1].position.x, pose.pose.keypoints[1].position.y);
-        let er = createVector(pose.pose.keypoints[2].position.x, pose.pose.keypoints[2].position.y);
-
-        if (prevFace != undefined) {
-            nose = p5.Vector.lerp(nose, prevFace[0], lerpAmount);
-            el = p5.Vector.lerp(el, prevFace[1], lerpAmount);
-            er = p5.Vector.lerp(er, prevFace[2], lerpAmount);
-        }
-
-        prevFace = [nose, el, er];
-
-        let btwEyes = p5.Vector.sub(el, er);
-        let d = p5.Vector.dist(nose, el);
 
         stroke(255);
         strokeWeight(d / 2);
@@ -140,6 +142,7 @@ function drawPoses() {
 
         // circle ovr head
         if (d * 10 < 600) {
+            stroke(255);
             fill(0, 80);
             push();
             translate(nose.x * xRescale, nose.y * yRescale - d);
@@ -147,7 +150,7 @@ function drawPoses() {
             if (isMic) {
                 ellipse(0, 0, d * 8 * map(mic.getLevel(), 0, 1, 1, 0.6), d * 10 * map(mic.getLevel(), 0, 1, 1, 1.5));
             } else {
-                ellipse(0, 0, d*8, d*10);
+                ellipse(0, 0, d * 8, d * 10);
             }
             pop();
         }
@@ -160,7 +163,7 @@ function drawPoses() {
         // right eye
         drawCross(er.x * xRescale, er.y * yRescale, btwEyes);
 
-        prevPose = pose;
+        prevPoses[j] = pose;
     }
 }
 
