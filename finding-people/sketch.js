@@ -19,13 +19,23 @@ let xRescale;
 let yRescale;
 let mic;
 
-var isMic = false;
+var isMic = true;
 var asciiartOn = true;
 var showOryginalImageFlag = true;
 let mirror = true;
 let invertVideo = false;
 let invertAsciiart = false;
 let lerpAmount = 0.3;
+
+// FTT
+let spectrum;
+let waveform;
+
+// Worms
+let worms = [];
+let maxWorms = 30;
+let spawnRate = 4; // seconds
+let newWorm = false;
 
 function setup() {
     cnv = createCanvas(1280, 960);
@@ -57,7 +67,11 @@ function setup() {
     poseNet.on("pose", gotPoses);
     strokeCap(ROUND);
     // blendMode(DIFFERENCE); // trippy
-    blendMode(HARD_LIGHT); // nice darkened colors
+    // blendMode(HARD_LIGHT); // nice darkened colors
+
+    // FTT
+    fft = new p5.FFT(0.8, 512);
+    fft.setInput(mic);
 }
 
 function setRescaling() {
@@ -67,7 +81,6 @@ function setRescaling() {
 
 function gotPoses(results) {
     poses = results;
-    console.log(poses);
 }
 
 function modelReady() {
@@ -79,6 +92,9 @@ function draw() {
     if (xRescale > 999999 || yRescale > 999999) {
         setRescaling();
     }
+
+    spectrum = fft.analyze();
+    // waveform = fft.waveform();
 
     if (mirror) {
         translate(width, 0);
@@ -92,7 +108,51 @@ function draw() {
 
     if (asciiartOn) drawAscii();
 
-    if (poses != undefined && poses.length > 0) drawPoses();
+    if (poses != undefined && poses.length > 0) {
+        drawPoses();
+        handleWorms();
+    } else {
+        showWorms();
+    }
+}
+
+function handleWorms() {
+    // spawn new if applicable
+    if (second() % spawnRate == 0 && worms.length < maxWorms && !newWorm) {
+        worms.push(new Worm(createVector(random(width), -50)));
+        newWorm = true;
+    } else if (second() % spawnRate != 0) {
+        newWorm = false;
+    }
+
+    var pose = poses[0].pose;
+    var nose = createVector(pose.keypoints[0].position.x * xRescale, pose.keypoints[0].position.y * yRescale);
+    // move towards mouth TODO
+
+    // remove worms which reached target
+    for (var i = worms.length - 1; i >= 0; i--) {
+        if (p5.Vector.dist(worms[i].pos, nose) < 20) {
+            worms.splice(i, 1);
+        }
+    }
+
+    // let the bass amplitude (bin 80 / 512) affect the max speed of worms
+    // var maxSpeedFactor = map(spectrum[30], 0, 255, 0.5, 10);
+    // console.log(maxSpeedFactor);
+
+    // apply seek function, update and show worms
+    for (var i = 0; i < worms.length; i++) {
+        // worms[i].maxspeed = worms[i].maxspeed0 * maxSpeedFactor;
+        worms[i].seek(nose);
+        worms[i].update();
+        worms[i].show();
+    }
+}
+
+function showWorms() {
+    for (var i = 0; i < worms.length; i++) {
+        worms[i].show();
+    }
 }
 
 function drawPoses() {
@@ -142,7 +202,6 @@ function drawPoses() {
 
         // circle ovr head
         if (d * 10 < 600) {
-            stroke(255);
             fill(0, 80);
             push();
             translate(nose.x * xRescale, nose.y * yRescale - d);
