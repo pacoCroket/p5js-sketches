@@ -3,12 +3,14 @@ body {
   padding: 0;
   margin: 0;
   background: black;
+  box-sizing: border-box;
 }
 
 .center {
   display: flex;
   justify-content: center;
-  align-items: center;
+  /* align-items: center; */
+  /* padding: auto; */
 }
 
 h3.center-title {
@@ -27,15 +29,16 @@ h3.center-title {
   position: fixed;
   border: none;
   z-index: -3 !important;
-  width: 101%;
+  width: 100%;
   height: 100%;
+  padding: auto
 }
 
 .configArea {
     width: 10%;
     transform: translateY(50%);
     height: auto;
-    padding: auto;
+    padding: 1rem;
 }
 
 button {
@@ -44,7 +47,7 @@ button {
     border-radius: 10px;    
     background-clip: padding-box;
     color: black;    
-    font: normal 500 16px/24px Tahoma;
+    font: normal 500 16px/26px Tahoma;
     position: relative;
     border: 3px solid transparent white;
     background-color: rgb(226, 226, 221);
