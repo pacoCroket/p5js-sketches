@@ -127,7 +127,7 @@ function draw() {
 function handleWorms() {
     // spawn new if applicable
     if (second() % spawnRate == 0 && worms.length < maxWorms && !newWorm) {
-        var spawnPos = createVector(round(random(0, 1))?width+50:-50, round(random(0, 1))?height+50:-50);
+        var spawnPos = createVector(round(random(0, 1))?width:0, round(random(0, 1))?height:-0);
         worms.push(new Worm(spawnPos));
         newWorm = true;
     } else if (second() % spawnRate != 0) {
@@ -157,7 +157,7 @@ function handleWorms() {
         worms[i].show();
     }
 
-    // wormCounter = `Worms: ${worms.length}`; // TODO update DOM
+    wormCounter.html(`Worms: ${worms.length}`); // TODO update DOM
 }
 
 function showWorms() {
@@ -281,26 +281,32 @@ function mouseReleased() {
 
 function micToggle() {
     isMic = !isMic;
+    micButton.class(isMic?'active':'inactive');
 }
 
 function mirrorToggle() {
     mirror = !mirror;
+    mirrorButton.class(mirror?'active':'inactive');
 }
 
 function skeletonToggle() {
     showSkeleton = !showSkeleton;
+    skeletonButton.class(showSkeleton?'active':'inactive');
 }
 
 function invertToggle() {
     invertVideo = !invertVideo;
+    invertButton.class(invertVideo?'active':'inactive');
 }
 
 function toggleAscii() {
     asciiartOn = !asciiartOn;
+    asciiButton.class(asciiartOn?'active':'inactive');
 }
 
 function toggleVideo() {
     showOryginalImageFlag = !showOryginalImageFlag;
+    showVideoButton.class(showOryginalImageFlag?'active':'inactive');
 }
 
 function setRescaling() {

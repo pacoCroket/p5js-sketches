@@ -44,7 +44,16 @@ button {
     border-radius: 10px;    
     background-clip: padding-box;
     color: black;    
-    font: bold 500 16px/20px Tahoma;
+    font: normal 500 16px/24px Tahoma;
     position: relative;
     border: 3px solid transparent white;
+    background-color: rgb(226, 226, 221);
+}
+
+.active {
+    background-color: rgb(226, 226, 221);
+}
+
+.inactive {
+    background-color: rgb(160, 144, 144);
 }
