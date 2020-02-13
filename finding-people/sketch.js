@@ -18,7 +18,7 @@ let yRescale;
 let mic;
 
 let isMic = true;
-let asciiartOn = true;
+let asciiartOn = false;
 let showSkeleton = true;
 let asciiButton;
 let showOryginalImageFlag = true;
@@ -127,9 +127,14 @@ function draw() {
 function handleWorms() {
     // spawn new if applicable
     if (second() % spawnRate == 0 && worms.length < maxWorms && !newWorm) {
-        var spawnPos = createVector(round(random(0, 1))?width:0, round(random(0, 1))?height:-0);
+        // spawn at edge of canvas, but at a random location
+        var x0 = round(random(0, 1))?random(width):round(random(0, 1))?width:0;
+        var y0 = (x0 == 0 || x0 == width)?random(height):round(random(0, 1))?height:0;
+        var spawnPos = createVector(x0, y0);
         worms.push(new Worm(spawnPos));
-        newWorm = true;
+        newWorm = true;        
+        wormCounter.html(`Worms: ${worms.length}`); 
+
     } else if (second() % spawnRate != 0) {
         newWorm = false;
     }
@@ -156,8 +161,6 @@ function handleWorms() {
         worms[i].update();
         worms[i].show();
     }
-
-    wormCounter.html(`Worms: ${worms.length}`); // TODO update DOM
 }
 
 function showWorms() {

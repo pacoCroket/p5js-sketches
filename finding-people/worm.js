@@ -80,7 +80,8 @@ class Segment {
         // this.len = map(this.worm.segments.length, 0, this.worm.count, this.worm.len0, this.worm.len0/this.worm.count);
         this.len = len_*0.75;
         this.end = this.start.copy();
-        this.end.add(this.len, 0);
+        var randomAngle = random(TWO_PI);
+        this.end.add(this.len*cos(randomAngle), sin(randomAngle));
         this.stroke = map(this.worm.segments.length, 0, this.worm.count, this.len*0.8, 1);
     }
 
